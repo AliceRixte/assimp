@@ -75,3 +75,10 @@ library:
   - include
   - Graphics/Formats/
   source-dirs : .
+
+executables:
+  assimp-exe:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+    - assimp
