@@ -22,7 +22,7 @@ module Graphics.Formats.Assimp.Camera (
 
 import Control.Applicative ((<$>), (<*>), liftA)
 import Foreign.Storable
-import Data.Vect.Float (Vec3(..))
+import Linear (V3(..))
 import Graphics.Formats.Assimp.Types
 
 -- | Helper structure to describe a virtual camera.
@@ -34,7 +34,7 @@ import Graphics.Formats.Assimp.Types
 -- corresponds to the camera. This allows for camera animations. For static
 -- cameras parameters like the 'look-at' or 'up' vectors are usually specified
 -- directly in aiCamera, but beware, they could also be encoded in the node
--- transformation. The following (pseudo)code sample shows how to do it: 
+-- transformation. The following (pseudo)code sample shows how to do it:
 --
 -- > // Get the camera matrix for a camera at a specific time
 -- > // if the node hierarchy for the camera does not contain
@@ -43,7 +43,7 @@ import Graphics.Formats.Assimp.Types
 -- > {
 -- >    node   cnd = find-node-for-camera(cam)
 -- >    matrix cmt = identity()
--- > 
+-- >
 -- >    // as usual - get the absolute camera transformation for this frame
 -- >    for each node nd in hierarchy from sceneRoot to cnd
 -- >      matrix cur
@@ -52,15 +52,15 @@ import Graphics.Formats.Assimp.Types
 -- >      else cur = nd->mTransformation;
 -- >      cmt = mult-matrices( cmt, cur )
 -- >    end for
--- > 
+-- >
 -- >    // now multiply with the camera's own local transform
 -- >    cam = mult-matrices (cam, get-camera-matrix(cmt) )
 -- > }
 data Camera = Camera
   { cameraName     :: String
-  , cameraPosition :: Vec3
-  , up             :: Vec3
-  , lookAt         :: Vec3
+  , cameraPosition :: V3 Float
+  , up             :: V3 Float
+  , lookAt         :: V3 Float
   , horizontalFOV  :: Float
   , clipPlaneNear  :: Float
   , clipPlaneFar   :: Float

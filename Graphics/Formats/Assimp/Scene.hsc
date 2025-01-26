@@ -24,7 +24,7 @@ import Foreign.C
 import Foreign.Ptr
 import Foreign.Marshal.Array
 import Control.Monad (liftM)
-import Data.Vect.Float (Mat4)
+import Linear (M44)
 import Graphics.Formats.Assimp.Types
 import Graphics.Formats.Assimp.Matrix
 import Graphics.Formats.Assimp.Light
@@ -35,7 +35,7 @@ import Graphics.Formats.Assimp.Material
 import Graphics.Formats.Assimp.Texture
 import Graphics.Formats.Assimp.Utils
 
-data SceneFlags = 
+data SceneFlags =
   -- |
   --
   -- Specifies that the scene data structure that was imported is not complete.
@@ -94,7 +94,7 @@ instance Enum SceneFlags where
   toEnum (#const AI_SCENE_FLAGS_VALIDATION_WARNING) = FlagsValidationWarning
   toEnum (#const AI_SCENE_FLAGS_NON_VERBOSE_FORMAT) = FlagsNonVerboseFormat
   toEnum (#const AI_SCENE_FLAGS_TERRAIN)            = FlagsTerrain
-  toEnum unmatched                                  = error $ 
+  toEnum unmatched                                  = error $
     "Return.toEnum: Cannot match " ++ show unmatched
 
 instance Show SceneFlags where
@@ -111,7 +111,7 @@ data Node = Node {
   -- accessed afterwards by bones or anims are usually named.  Multiple nodes
   -- may have the same name, but nodes which are accessed by bones (see
   -- 'aiBone' and 'aiMesh'::'mBones') *must* be unique.
-  -- 
+  --
   -- Cameras and lights are assigned to a specific node name - if there are
   -- multiple nodes with this name, they're assigned to each of them.
   --
@@ -120,7 +120,7 @@ data Node = Node {
   -- quotation marks, ampersands, ... .
     nodeName       :: String
   -- | The transformation relative to the node's parent.
-  , transformation :: Mat4
+  , transformation :: M44 Float
   -- | Parent node. 'Nothing' if this node is the root node.
   , parent         :: Maybe Node
   -- | The child nodes of this node.
@@ -138,11 +138,11 @@ instance Storable Node where
   peek p = do
     mName           <- liftM aiStringToString $ (#peek aiNode, mName) p
     mTransformation <- unMat4F `fmap` (#peek aiNode, mTransformation) p
-    -- mParent      <- if mParentPtr == nullPtr 
-    --                 then return Nothing 
+    -- mParent      <- if mParentPtr == nullPtr
+    --                 then return Nothing
     --                 else (#peek aiNode, mParent) p
     -- Temporary workaround so we don't end up in an infinite loop
-    let mParent = Nothing 
+    let mParent = Nothing
     mNumChildren    <- (#peek aiNode, mNumChildren) p :: IO CUInt
     mChildrenP''    <- (#peek aiNode ,mChildren) p >>=
                          peekArray' (fromIntegral mNumChildren)
@@ -158,25 +158,25 @@ data Scene = Scene {
   --
   -- Most applications will want to reject all scenes with 'FlagsIncomplete'.
     flags      :: [SceneFlags]
-  -- | The root node of the hierarchy. 
+  -- | The root node of the hierarchy.
   --
   -- There will always be at least the root node if the import was successful
   -- (and no special flags have been set).  Presence of further nodes depends
   -- on the format and content of the imported file.
   , rootNode   :: Node
-  -- | The list of meshes. 
+  -- | The list of meshes.
   --
   -- Use the indices given in your 'Node' to access this list. If the
   -- 'FlagsIncomplete' flag is not set there will always be at least ONE
   -- material.
   , meshes     :: [Mesh]
-  -- | The list of materials. 
+  -- | The list of materials.
   --
   -- Use the index given in each 'Mesh' to access this list. If the
   -- 'FlagsIncomplete' flag is not set there will always be at least ONE
   -- material.
   , materials  :: [Material]
-  -- | The list of animations. 
+  -- | The list of animations.
   --
   -- All animations imported from the given file are listed here.
   , animations :: [Animation]
@@ -207,7 +207,7 @@ instance Storable Scene where
     logLn "peeking mNumMeshes"
     mNumMeshes     <- (#peek aiScene, mNumMeshes) p :: IO CUInt
     logLn "peeking mMeshes'"
-    mMeshes'       <- (#peek aiScene, mMeshes) p >>= 
+    mMeshes'       <- (#peek aiScene, mMeshes) p >>=
                         peekArray (fromIntegral mNumMeshes)
     logLn "peeking mMeshes"
     logLn $ "num meshes: " ++ (show mNumMeshes)
@@ -217,7 +217,7 @@ instance Storable Scene where
     mNumMaterials  <- (#peek aiScene, mNumMaterials) p :: IO CUInt
     logLn $ "mNumMaterials: " ++ (show mNumMaterials)
     logLn "peeking mMaterials'"
-    mMaterials'    <- (#peek aiScene, mMaterials) p >>= 
+    mMaterials'    <- (#peek aiScene, mMaterials) p >>=
                         peekArray (fromIntegral mNumMaterials)
     logPrint mMaterials'
     logLn "peeking mMaterials"
@@ -225,19 +225,19 @@ instance Storable Scene where
     logLn "peeking mNumAnimations"
     mNumAnimations <- (#peek aiScene, mNumAnimations) p :: IO CUInt
     logLn $ "mNumAnimations: " ++ (show mNumAnimations)
-    mAnimations    <- (#peek aiScene, mAnimations) p >>= peekArrayPtr (fromIntegral mNumAnimations) 
+    mAnimations    <- (#peek aiScene, mAnimations) p >>= peekArrayPtr (fromIntegral mNumAnimations)
     mNumTextures   <- (#peek aiScene, mNumTextures) p :: IO CUInt
     logLn $ "mNumTextures: " ++ (show mNumTextures)
-    mTextures      <- (#peek aiScene, mTextures) p >>= 
+    mTextures      <- (#peek aiScene, mTextures) p >>=
                         peekArrayPtr (fromIntegral mNumTextures)
     mNumLights     <- (#peek aiScene, mNumLights) p :: IO CUInt
     logLn $ "mNumLights: " ++ (show mNumLights)
-    mLights        <- (#peek aiScene, mLights) p >>= 
+    mLights        <- (#peek aiScene, mLights) p >>=
                         peekArrayPtr (fromIntegral mNumLights)
     mNumCameras    <- (#peek aiScene, mNumCameras) p :: IO CUInt
     logLn $ "mNumCameras: " ++ (show mNumCameras)
     logLn "peeking mCameras"
-    mCameras       <- (#peek aiScene, mCameras) p >>= 
+    mCameras       <- (#peek aiScene, mCameras) p >>=
                         peekArrayPtr (fromIntegral mNumCameras)
     return $ Scene mFlags mRootNode mMeshes mMaterials mAnimations mTextures
                    mLights mCameras

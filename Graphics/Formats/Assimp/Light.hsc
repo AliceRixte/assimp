@@ -22,11 +22,11 @@ module Graphics.Formats.Assimp.Light (
 
 import Control.Applicative (liftA, (<$>), (<*>))
 import Foreign.Storable
-import Data.Vect.Float (Vec3(Vec3))
+import Linear (V3(..))
 import Graphics.Formats.Assimp.Types
 
 -- | All supported types of light sources
-data LightSourceType 
+data LightSourceType
   = LightSourceUndefined
   -- | A directional light source has a well-defined direction but is
   -- infinitely far away.
@@ -57,7 +57,7 @@ instance Enum LightSourceType where
   toEnum 3 = LightSourceSpot
   toEnum unmatched = error ("LightSourceType.toEnum: Cannot match " ++ show unmatched)
 
-data Light = Light { 
+data Light = Light {
   -- | The name of the light source
   -- There must be a node in the scenegraph with the same name. This node
   -- specifies the position of the light in the scene hierarchy and can be
@@ -71,14 +71,14 @@ data Light = Light {
   -- Relative to the transformation of the node corresponding to the light.
   --
   -- The position is undefined for directional lights.
-  , lightPosition        :: Vec3
+  , lightPosition        :: V3 Float
   -- | Direction of the light source in space
   --
   -- Relative to the transformation of the node corresponding to the light.
   --
   -- The direction is undefined for point lights. The vector may be normalized,
   -- but it needn't.
-  , direction            :: Vec3
+  , direction            :: V3 Float
   -- | Constant light attenuation factor
   --
   -- The intensity of the light source at a given distance 'd' from the light's

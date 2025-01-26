@@ -35,14 +35,15 @@ import Foreign.C.String (peekCStringLen)
 import Foreign.Marshal.Array (peekArray)
 import Foreign.Storable
 import Control.Applicative((<$>), (<*>))
-import Data.Vect.Float (Vec3(Vec3))
+-- import Data.Vect.Float (Vec3(Vec3))
+import Linear
 
 #include "cimport.h"        // Plain-C interface
 #include "typedefs.h"
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 
 -- | Standard return type for some library functions.
-data Return 
+data Return
   -- | Indicates that a function was successful
   = ReturnSuccess
   -- | Indicates that a function failed
@@ -88,9 +89,9 @@ instance Storable Plane where
                  <*> (#peek aiPlane, d) p
   poke = undefined
 
-data Ray = Ray 
-  { rayPos :: Vec3
-  , rayDir :: Vec3
+data Ray = Ray
+  { rayPos :: V3 Float
+  , rayDir :: V3 Float
   } deriving (Show)
 
 instance Storable Ray where
@@ -100,14 +101,14 @@ instance Storable Ray where
                <*> (#peek aiRay, dir) p
   poke = undefined
 
-newtype Color3F = Color3F Vec3 deriving Show
+newtype Color3F = Color3F (V3 Float) deriving Show
 
 instance Storable Color3F where
   sizeOf _ = #size aiColor3D
   alignment _ = #alignment aiColor3D
-  peek p = Color3F <$> (Vec3 <$> (#peek aiColor3D, r) p
-                             <*> (#peek aiColor3D, g) p
-                             <*> (#peek aiColor3D, b) p)
+  peek p = Color3F <$> (V3 <$> (#peek aiColor3D, r) p
+                           <*> (#peek aiColor3D, g) p
+                           <*> (#peek aiColor3D, b) p)
   poke = undefined
 
 -- | Stores the memory requirements for different components (e.g. meshes,
@@ -137,7 +138,7 @@ instance Storable MemoryInfo where
     cameras    <- (#peek aiMemoryInfo, cameras) p
     lights     <- (#peek aiMemoryInfo, lights) p
     total      <- (#peek aiMemoryInfo, total) p
-    return $ MemoryInfo text materials meshes nodes animations cameras lights 
+    return $ MemoryInfo text materials meshes nodes animations cameras lights
                         total
   poke = undefined
 
@@ -164,7 +165,7 @@ aiStringToString :: AiString -> String
 aiStringToString (AiString s) = s
 
 class Position a where
-  position :: a -> Vec3
+  position :: a -> V3 Float
 
 class Name a where
   name :: a -> String

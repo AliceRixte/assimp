@@ -44,7 +44,7 @@ import Control.Monad (liftM)
 import Control.Applicative (liftA, (<$>), (<*>))
 import Control.Exception (catch)
 import Unsafe.Coerce (unsafeCoerce)
-import Data.Vect (Vec3(Vec3), Vec4(Vec4))
+import Linear (V3(..), V4(..))
 import Data.List (foldl1')
 
 import Graphics.Formats.Assimp.Config
@@ -53,7 +53,7 @@ import Graphics.Formats.Assimp.Types
 import Graphics.Formats.Assimp.Scene
 import Graphics.Formats.Assimp.Material hiding (key)
 import Graphics.Formats.Assimp.PostProcess
-import Graphics.Formats.Assimp.Utils 
+import Graphics.Formats.Assimp.Utils
 
 #include "material.h"
 #include "typedefs.h"
@@ -260,14 +260,14 @@ instance SingleGetter Float where
 instance SingleGetter Int where
   get = getMaterialInt
 
-instance SingleGetter Vec3 where
-  get mat key = (liftM . liftM) (\(Vec4 r g b _) -> Vec3 r g b)
+instance SingleGetter (V3 Float) where
+  get mat key = (liftM . liftM) (\(V4 r g b _) -> V3 r g b)
     (getMaterialColor mat key)
 
 instance SingleGetter Color4F where
   get mat key = (liftM . liftM) Color4F (getMaterialColor mat key)
 
-instance SingleGetter Vec4 where
+instance SingleGetter (V4 Float) where
   get = getMaterialColor
 
 instance SingleGetter String where
@@ -315,7 +315,7 @@ getMaterialProperty' mat prop n1 n2 =
   with mat $ \pmat ->
     withCString prop $ \pprop ->
       alloca $ \ppmatprop -> (,)
-        <$> liftA (toEnum . fromIntegral) 
+        <$> liftA (toEnum . fromIntegral)
               (aiGetMaterialProperty pmat pprop n1 n2 ppmatprop)
         <*> peek ppmatprop
 
@@ -440,7 +440,7 @@ getMaterialInt mat key = do
 
 -------------------------------------------------------------------------------
 
-getMaterialColor :: Material -> MatKey -> IO (Either String Vec4)
+getMaterialColor :: Material -> MatKey -> IO (Either String (V4 Float))
 getMaterialColor mat key = do
   let (mKey, mType, mIndex) = matKeyToTuple key
   (ret, vec) <- getMaterialColor' mat mKey mType mIndex
@@ -449,7 +449,7 @@ getMaterialColor mat key = do
     ReturnFailure     -> Left "Failed."
     ReturnOutOfMemory -> Left "Out of memory."
 
-getMaterialColor' :: Material -> String -> CUInt -> CUInt -> IO (Return, Vec4)
+getMaterialColor' :: Material -> String -> CUInt -> CUInt -> IO (Return, V4 Float)
 getMaterialColor' mat key typ idx =
   with mat $ \pmat ->
     withCString key $ \ckey ->
@@ -462,7 +462,7 @@ foreign import ccall unsafe "aiGetMaterialColor"
                      -> Ptr CChar
                      -> CUInt
                      -> CUInt
-                     -> Ptr Vec4
+                     -> Ptr (V4 Float)
                      -> IO CInt
 
 -------------------------------------------------------------------------------
@@ -476,10 +476,10 @@ getMaterialString mat key = do
     ReturnFailure     -> Left "Failed."
     ReturnOutOfMemory -> Left "Out of memory."
 
-getMaterialString' :: Material 
-                   -> String 
-                   -> CUInt 
-                   -> CUInt 
+getMaterialString' :: Material
+                   -> String
+                   -> CUInt
+                   -> CUInt
                    -> IO (Return, AiString)
 getMaterialString' mat key typ idx =
   with mat $ \pmat ->
@@ -500,7 +500,7 @@ foreign import ccall unsafe "aiGetMaterialString"
 
 -- | Get the number of textures on a texture stack
 getTextureCount :: Material -> TextureType -> IO CUInt
-getTextureCount mat ttype = with mat $ \pmat -> 
+getTextureCount mat ttype = with mat $ \pmat ->
   aiGetMaterialTextureCount pmat (fromIntegral . fromEnum $ ttype)
 
 foreign import ccall unsafe "aiGetMaterialTextureCount"
@@ -549,9 +549,9 @@ data GetTextureRet = GetTextureRet
   , retFlags   :: Maybe [TextureFlag]  -- ^ Texture flags
   }
 
-getTexture' :: Material 
-            -> TextureType 
-            -> CUInt 
+getTexture' :: Material
+            -> TextureType
+            -> CUInt
             -> GetTextureConf
             -> IO (Return, GetTextureRet)
 getTexture' mat typ idx conf =
@@ -563,11 +563,11 @@ getTexture' mat typ idx conf =
             (if confOp conf then alloca else ($ nullPtr)) $ \pOp ->
               (if confMapmode conf then alloca else ($ nullPtr)) $ \pMapMode ->
                 (if confFlags conf then alloca else ($ nullPtr)) $ \pFlags -> do
-                  ret <- mRet `liftM` aiGetMaterialTexture pMat 
-                                        (fromIntegral . fromEnum $ typ) idx pPath 
+                  ret <- mRet `liftM` aiGetMaterialTexture pMat
+                                        (fromIntegral . fromEnum $ typ) idx pPath
                                         pMapping pUv pBlend pOp pMapMode pFlags
-                  let helper ptr = if ptr /= nullPtr 
-                                   then Just `liftM` peek ptr 
+                  let helper ptr = if ptr /= nullPtr
+                                   then Just `liftM` peek ptr
                                    else return Nothing
                   path'    <- aiStringToString `liftM` peek pPath
                   mapping' <- (liftM . liftM) (toEnum . fromIntegral) (helper pMapping)

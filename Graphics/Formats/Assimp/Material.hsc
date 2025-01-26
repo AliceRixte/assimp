@@ -36,9 +36,9 @@ import Foreign.Ptr (Ptr, castPtr)
 import Foreign.C.String (peekCStringLen)
 import Foreign.C.Types
 import Foreign.Storable
-import Data.Vect (Vec2)
+import Linear (V2)
 import Graphics.Formats.Assimp.Types
-import Graphics.Formats.Assimp.Utils 
+import Graphics.Formats.Assimp.Utils
 import Control.Monad (join)
 import Control.Applicative ((<$>), (<*>))
 
@@ -701,7 +701,7 @@ instance Storable Material where
   poke = undefined
 
 data UVTransform = UVTransform
-  { translation :: Vec2
-  , scaling     :: Vec2
+  { translation :: V2 Float
+  , scaling     :: V2 Float
   , rotation    :: Float
   } deriving (Show)

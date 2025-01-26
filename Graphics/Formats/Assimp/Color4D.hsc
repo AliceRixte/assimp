@@ -22,16 +22,17 @@ module Graphics.Formats.Assimp.Color4D (
 
 import Control.Applicative ((<$>), (<*>))
 import Foreign.Storable
-import Data.Vect.Float (Vec4(..))
+import Linear
+-- import Data.Vect.Float (Vec4(..))
 
 -- | RGBA color structure
-newtype Color4F = Color4F Vec4 deriving Show
+newtype Color4F = Color4F (V4 Float) deriving Show
 
 instance Storable Color4F where
   sizeOf _ = #size aiColor4D
   alignment _ = #alignment aiColor4D
-  peek p = Color4F <$> (Vec4 <$> (#peek aiColor4D, r) p
-                             <*> (#peek aiColor4D, g) p
-                             <*> (#peek aiColor4D, b) p
-                             <*> (#peek aiColor4D, a) p)
+  peek p = Color4F <$> (V4  <$> (#peek aiColor4D, r) p
+                            <*> (#peek aiColor4D, g) p
+                            <*> (#peek aiColor4D, b) p
+                            <*> (#peek aiColor4D, a) p)
   poke = undefined

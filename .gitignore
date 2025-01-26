@@ -1,3 +1,5 @@
 assimp/
 dist/
 .virthualenv
+dist-newstyle
+vcpkg_installed

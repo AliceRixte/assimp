@@ -30,15 +30,15 @@ import Foreign.Marshal.Array
 import Data.Bits (shiftR)
 import Control.Monad (liftM, join)
 import Control.Applicative ((<$>), (<*>))
-import Data.Vect.Float (Vec3(..), Mat4)
+import Linear (V3(..), M44)
 import Graphics.Formats.Assimp.Types
 import Graphics.Formats.Assimp.Color4D
 import Graphics.Formats.Assimp.Matrix (Mat4F, unMat4F)
 import Graphics.Formats.Assimp.Material
-import Graphics.Formats.Assimp.Utils 
+import Graphics.Formats.Assimp.Utils
 
 -- | Enumerates the types of geometric primitives supported by Assimp.
-data PrimitiveType 
+data PrimitiveType
   -- | A point primitive.
   --
   -- This is just a single vertex in the virtual world, 'aiFace' contains just
@@ -82,7 +82,7 @@ instance Enum PrimitiveType where
 -- is presented in channels with each channel containing a single per-vertex
 -- information such as a set of texture coords or a normal vector. If a data
 -- pointer is non-null, the corresponding data stream is present.
--- 
+--
 -- A Mesh uses only a single material which is referenced by a material ID.
 data Mesh = Mesh {
   -- | Bitwise combination of the members of the 'PrimitiveType' enum.
@@ -92,7 +92,7 @@ data Mesh = Mesh {
   -- consist of one primitive type each.
     primitiveTypes  :: [PrimitiveType]
   -- | Vertex positions.
-  , vertices        :: [Vec3]
+  , vertices        :: [V3 Float]
   -- | Vertex normals
   --
   -- Meshes with mixed primitive types (i.e. lines and triangles) may have
@@ -103,7 +103,7 @@ data Mesh = Mesh {
   -- Normal vectors computed by Assimp are always unit-length. However, this
   -- needn't apply for normals that have been taken directly from the model
   -- file.
-  , normals         :: [Vec3]
+  , normals         :: [V3 Float]
   -- | Vertex tangents.
   --
   -- The tangent of a vertex points in the direction of the positive X texture
@@ -117,7 +117,7 @@ data Mesh = Mesh {
   -- Note:
   -- If the mesh contains tangents, it automatically also contains bitangents
   -- (the bitangent is just the cross product of tangent and normal vectors).
-  , tangents        :: [Vec3]
+  , tangents        :: [V3 Float]
   -- | Vertex bitangents.
   --
   -- The bitangent of a vertex points in the direction of the positive Y
@@ -125,11 +125,11 @@ data Mesh = Mesh {
   --
   -- Note:
   -- If the mesh contains tangents, it automatically also contains bitangents.
-  , bitangents      :: [Vec3]
+  , bitangents      :: [V3 Float]
   -- | Vertex color sets.
   , colors          :: [Color4F]
   -- | Vertex texture coords, also known as UV channels.
-  , textureCoords   :: [Vec3]
+  , textureCoords   :: [V3 Float]
   -- | Specifies the number of components for a given UV channel.
   --
   -- Up to three channels are supported (UVW, for accessing volume or cube maps). If the value is 2 for a given channel n, the component p.z of mTextureCoords[n][p] is set to 0.0f. If the value is 1 for a given channel, p.y is set to 0.0f, too.
@@ -158,7 +158,7 @@ data Mesh = Mesh {
   --
   -- Meshes can be named, but this is not a requirement and leaving this field
   -- empty is totally fine. There are mainly three uses for mesh names:
-  -- 
+  --
   --   * some formats name nodes and meshes independently.
   --
   --   * importers tend to split meshes up to meet the one-material-per-mesh
@@ -194,17 +194,17 @@ instance Storable Mesh where
     logLn "peeking mNumUVComponents"
     mNumUVComponents <- (#peek aiMesh, mNumUVComponents) p
     logLn "peeking mNumFaces"
-    mNumFaces        <- liftM fromIntegral 
+    mNumFaces        <- liftM fromIntegral
                         ((#peek aiMesh, mNumFaces) p :: IO CUInt)
     logPrint (mPrimitiveTypes, mNumVs, mVertices, mNormals, mTangents, mBitangents, mColors, mTextureCoords, mNumUVComponents)
     logLn "peeking mFaces"
     logLn $ "num faces: " ++ (show mNumFaces)
     (#peek aiMesh, mFaces) p >>= \(x::Ptr ()) -> logLn $ "mFaces: " ++ (show x)
     mFaces           <- (#peek aiMesh, mFaces) p >>= peekArray mNumFaces
-    logLn $ "numBones: "  
+    logLn $ "numBones: "
     mNumBones        <- (#peek aiMesh, mNumBones) p :: IO CUInt
     logPrint mNumBones
-    mBones           <- ((#peek aiMesh, mBones) p) >>= peekArrayPtr (fromIntegral mNumBones) 
+    mBones           <- ((#peek aiMesh, mBones) p) >>= peekArrayPtr (fromIntegral mNumBones)
     logLn "peeking mMaterialIndex"
     mMaterialIndex   <- (#peek aiMesh, mMaterialIndex) p
     logLn "peeking mName"
@@ -226,7 +226,7 @@ data Bone = Bone {
   -- | The vertices affected by this bone.
   , weights       :: [VertexWeight]
   -- | Matrix that transforms from mesh space to bone space in bind pose.
-  , offsetMatrix :: Mat4
+  , offsetMatrix :: M44 Float
   } deriving (Show)
 
 instance Name Bone where
@@ -269,7 +269,7 @@ instance Storable Bone where
 -- Take a look at the Data Structures page
 -- (<http://assimp.sourceforge.net/lib_html/data.html>) for more information on
 -- the layout and winding order of a face.
-newtype Face = Face { 
+newtype Face = Face {
     indices :: [CUInt] -- Holds indices defining the face
   } deriving (Show)
 

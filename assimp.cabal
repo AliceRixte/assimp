@@ -75,7 +75,8 @@ Library
     Graphics.Formats.Assimp.Utils
   ghc-options: -Wall
   Build-depends: base         >= 4     && < 5
-               , vect         >= 0.4.6 && < 0.5
+               , linear
+              --  , vect         >= 0.4.6 && < 0.5
   Build-tools: hsc2hs
   Extensions: ForeignFunctionInterface
   Extra-libraries: assimp
