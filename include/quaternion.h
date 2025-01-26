@@ -134,6 +134,8 @@ using aiQuaternion = aiQuaterniont<ai_real>;
 
 #else
 
+typedef float ai_real;
+
 struct aiQuaternion {
     ai_real w, x, y, z;
 };
