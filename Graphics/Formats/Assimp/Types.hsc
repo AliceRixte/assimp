@@ -152,7 +152,7 @@ instance Storable AiString where
     if start == nullPtr
       then return $ AiString ""
       else do
-        len <- (#peek aiString, length) p
+        len <- fromIntegral <$> ((#peek aiString, length) p :: IO CUInt)
         -- So the string is stored as an array, we need to pass a pointer to
         -- peekCStringLen, so we can't just (#peek aiString, data) because that
         -- would give us the value of the first word of the string instead of
