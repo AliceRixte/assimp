@@ -3,3 +3,4 @@ dist/
 .virthualenv
 dist-newstyle
 vcpkg_installed
+.stack-work

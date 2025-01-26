@@ -1,89 +1,60 @@
-Name:                assimp
-Version:             0.2
-Synopsis:            The Assimp asset import library
+cabal-version: 1.12
 
-Description:
-    /Important/: Install with
-    @cabal install --extra-include-dirs \/usr\/local\/include\/assimp\/@
-    Of course use the location of the include files on your system.
-    .
-    This library provides FFI bindings to the Assimp asset import
-    library. It requires Assimp to already be installed. For more
-    information about Assimp see the assimp website at
-    <http://assimp.sourceforge.net/>.
-    .
-    This release corresponds to Assimp 2.0. When this package stabilizes I
-    intend to track new releases of Assimp by also releasing new versions with
-    the same version number, but this should be considered a beta release.
-    Importing models is currently working. Textures and animations are
-    untested.
-    .
-    Here is a sample program that imports a scene and then outputs the
-    information contained in it.
-    .
-    > module Main where
-    >
-    > import System.Environment (getArgs)
-    > import Graphics.Formats.Assimp
-    >
-    > -- Defines the preprocessing we want assimp to perform
-    > processing = [ CalcTangentSpace
-    >              , Triangulate
-    >              , JoinIdenticalVertices
-    >              , SortByPType
-    >              ]
-    >
-    > main = do
-    >   args <- getArgs
-    >   mapM_ (print =<<)
-    >     [ importFile (head args) processing -- Outputs all information in the scene
-    >     , getVersionMajor     -- Print the major version of assimp
-    >     , getVersionMinor     -- Print the minor version of assimp
-    >     , getVersionRevision  -- Print the version revision of assimp
-    >     ]
-    .
-    See <https://github.com/joelburget/Cologne/blob/master/Cologne/AssimpImport.hs>
-    for more.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
 
-License:             BSD3
-License-file:        LICENSE
-Author:              Joel Burget
-Maintainer:          joelburget@gmail.com
-Copyright:           Joel Burget 2011-2012
-Category:            Graphics
-Build-type:          Simple
-Cabal-version:       >= 1.6
+name:           assimp
+version:        0.0.0
+description:    /Important/: Install with @cabal install --extra-include-dirs /usr/local/include/assimp/@ Of course use the location of the include files on your system. . This library provides FFI bindings to the Assimp asset import library. It requires Assimp to already be installed. For more information about Assimp see the assimp website at <http://assimp.sourceforge.net/>. . This release corresponds to Assimp 2.0. When this package stabilizes I intend to track new releases of Assimp by also releasing new versions with the same version number, but this should be considered a beta release. Importing models is currently working. Textures and animations are untested. . Here is a sample program that imports a scene and then outputs the information contained in it. . > module Main where > > import System.Environment (getArgs) > import Graphics.Formats.Assimp > > -- Defines the preprocessing we want assimp to perform > processing = [ CalcTangentSpace >              , Triangulate >              , JoinIdenticalVertices >              , SortByPType >              ] > > main = do >   args <- getArgs >   mapM_ (print =<<) >     [ importFile (head args) processing -- Outputs all information in the scene >     , getVersionMajor     -- Print the major version of assimp >     , getVersionMinor     -- Print the minor version of assimp >     , getVersionRevision  -- Print the version revision of assimp >     ] . See <https://github.com/joelburget/Cologne/blob/master/Cologne/AssimpImport.hs> for more.
+homepage:       https://github.com/joelburget/assimp#readme
+bug-reports:    https://github.com/joelburget/assimp/issues
+author:         Joel Burget
+maintainer:     joelburget@gmail.com
+copyright:      Joel Burget 2011-2012
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
 
-Library
-  Exposed-modules: Graphics.Formats.Assimp
-  Other-modules:
-    Graphics.Formats.Assimp.Anim
-    Graphics.Formats.Assimp.Camera
-    Graphics.Formats.Assimp.Color4D
-    Graphics.Formats.Assimp.Config
-    Graphics.Formats.Assimp.Fun
-    Graphics.Formats.Assimp.Light
-    Graphics.Formats.Assimp.Material
-    Graphics.Formats.Assimp.Matrix
-    Graphics.Formats.Assimp.Mesh
-    Graphics.Formats.Assimp.PostProcess
-    Graphics.Formats.Assimp.Quaternion
-    Graphics.Formats.Assimp.Scene
-    Graphics.Formats.Assimp.Texture
-    Graphics.Formats.Assimp.Types
-    Graphics.Formats.Assimp.Version
-    Graphics.Formats.Assimp.Utils
-  ghc-options: -Wall
-  Build-depends: base         >= 4     && < 5
-               , linear
-              --  , vect         >= 0.4.6 && < 0.5
-  Build-tools: hsc2hs
-  Extensions: ForeignFunctionInterface
-  Extra-libraries: assimp
-  Include-dirs:
-    include,
-    Graphics/Formats/
+source-repository head
+  type: git
+  location: https://github.com/joelburget/assimp
 
-Source-repository head
-  type:     git
-  location: git@github.com:joelburget/assimp.git
+library
+  exposed-modules:
+      Graphics.Formats.Assimp
+      Graphics.Formats.Assimp.Anim
+      Graphics.Formats.Assimp.Camera
+      Graphics.Formats.Assimp.Color4D
+      Graphics.Formats.Assimp.Config
+      Graphics.Formats.Assimp.Fun
+      Graphics.Formats.Assimp.Light
+      Graphics.Formats.Assimp.Material
+      Graphics.Formats.Assimp.Matrix
+      Graphics.Formats.Assimp.Mesh
+      Graphics.Formats.Assimp.PostProcess
+      Graphics.Formats.Assimp.Quaternion
+      Graphics.Formats.Assimp.Scene
+      Graphics.Formats.Assimp.Texture
+      Graphics.Formats.Assimp.Types
+      Graphics.Formats.Assimp.Utils
+      Graphics.Formats.Assimp.Vector
+      Graphics.Formats.Assimp.Version
+  other-modules:
+      Paths_assimp
+  hs-source-dirs:
+      ./
+  ghc-options: -Wall -O1
+  include-dirs:
+      include
+      Graphics/Formats/
+  extra-libraries:
+      assimp
+  build-tools:
+      hsc2hs
+  build-depends:
+      base ==4.*
+    , linear
+  default-language: Haskell2010
